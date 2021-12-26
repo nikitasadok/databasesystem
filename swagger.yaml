@@ -1,0 +1,526 @@
+basePath: /
+consumes:
+- application/json
+definitions:
+  Cell:
+    properties:
+      datatype:
+        type: string
+        x-go-name: GetDatatype
+      value:
+        type: object
+        x-go-name: GetValue
+    type: object
+    x-go-package: github.com/nikitasadok/database-system/domain
+  ColumnData:
+    properties:
+      datatype:
+        type: string
+        x-go-name: Datatype
+      name:
+        type: string
+        x-go-name: Name
+    type: object
+    x-go-package: github.com/nikitasadok/database-system/domain
+  Database:
+    properties:
+      id:
+        $ref: '#/definitions/ObjectID'
+      name:
+        example: production
+        type: string
+        x-go-name: Name
+      tableCount:
+        format: int64
+        type: integer
+        x-go-name: TableCount
+      tables:
+        items:
+          $ref: '#/definitions/Table'
+        type: array
+        x-go-name: Tables
+    required:
+    - name
+    type: object
+    x-go-package: github.com/nikitasadok/database-system/domain
+  ObjectID:
+    items:
+      format: uint8
+      type: integer
+    title: ObjectID is the BSON ObjectID type.
+    type: array
+    x-go-package: go.mongodb.org/mongo-driver/bson/primitive
+  ResponseError:
+    properties:
+      message:
+        type: string
+        x-go-name: Message
+    type: object
+    x-go-package: github.com/nikitasadok/database-system/row/delivery/http
+  Row:
+    properties:
+      cells:
+        items:
+          $ref: '#/definitions/Cell'
+        type: array
+        x-go-name: Cells
+      id:
+        $ref: '#/definitions/ObjectID'
+    type: object
+    x-go-package: github.com/nikitasadok/database-system/domain
+  Table:
+    properties:
+      columns:
+        items:
+          $ref: '#/definitions/ColumnData'
+        type: array
+        x-go-name: Columns
+      createdAt:
+        format: date-time
+        type: string
+        x-go-name: CreatedAt
+      database_id:
+        $ref: '#/definitions/ObjectID'
+      id:
+        $ref: '#/definitions/ObjectID'
+      name:
+        type: string
+        x-go-name: Name
+      rows:
+        items:
+          $ref: '#/definitions/Row'
+        type: array
+        x-go-name: Rows
+      rowsCount:
+        example: 10
+        format: uint64
+        type: integer
+        x-go-name: RowsCount
+      updatedAt:
+        format: date-time
+        type: string
+        x-go-name: UpdatedAt
+    type: object
+    x-go-package: github.com/nikitasadok/database-system/domain
+  TablesProduct:
+    properties:
+      rows:
+        items:
+          $ref: '#/definitions/Row'
+        type: array
+        x-go-name: Rows
+    type: object
+    x-go-package: github.com/nikitasadok/database-system/domain
+host: 127.0.0.1:8080
+info:
+  description: Documentation of database management API.
+  title: Database Management.
+  version: 1.0.0
+paths:
+  /database:
+    post:
+      operationId: database-create
+      parameters:
+      - in: body
+        name: Body
+        schema:
+          properties:
+            name:
+              type: string
+              x-go-name: Name
+          type: object
+      responses:
+        "200":
+          $ref: '#/responses/databaseResponse'
+        "400":
+          $ref: '#/responses/databaseResponseError'
+        "422":
+          $ref: '#/responses/databaseResponseError'
+      summary: Create database record.
+      tags:
+      - database
+  /database/{database_id}/table:
+    post:
+      operationId: table-create
+      parameters:
+      - in: path
+        name: database_id
+        required: true
+        type: string
+        x-go-name: DatabaseID
+      - in: body
+        name: Body
+        schema:
+          properties:
+            columns:
+              items:
+                properties:
+                  datatype:
+                    type: string
+                    x-go-name: Datatype
+                  name:
+                    type: string
+                    x-go-name: Name
+                type: object
+              type: array
+              x-go-name: Columns
+            name:
+              type: string
+              x-go-name: Name
+          type: object
+      responses:
+        "200":
+          $ref: '#/responses/tableResponse'
+        "400":
+          $ref: '#/responses/databaseResponseError'
+        "422":
+          $ref: '#/responses/databaseResponseError'
+      summary: Create table record for specified database.
+      tags:
+      - table
+  /database/{database_id}/table/{id}:
+    delete:
+      operationId: table-delete
+      parameters:
+      - in: body
+        name: Body
+        schema:
+          properties:
+            name:
+              type: string
+              x-go-name: Name
+          type: object
+      - in: path
+        maximum: 12
+        name: id
+        required: true
+        type: string
+        x-go-name: ID
+      - in: path
+        name: database_id
+        required: true
+        type: string
+        x-go-name: DatabaseID
+      responses:
+        "200":
+          $ref: '#/responses/databaseResponseDelete'
+        "400":
+          $ref: '#/responses/databaseResponseError'
+        "422":
+          $ref: '#/responses/databaseResponseError'
+      summary: Delete table record by ID for specified database.
+      tags:
+      - table
+    get:
+      operationId: table-get
+      parameters:
+      - in: body
+        name: Body
+        schema:
+          properties:
+            name:
+              type: string
+              x-go-name: Name
+          type: object
+      - in: path
+        maximum: 12
+        name: id
+        required: true
+        type: string
+        x-go-name: ID
+      - in: path
+        name: database_id
+        required: true
+        type: string
+        x-go-name: DatabaseID
+      responses:
+        "200":
+          $ref: '#/responses/tableResponse'
+        "400":
+          $ref: '#/responses/databaseResponseError'
+        "422":
+          $ref: '#/responses/databaseResponseError'
+      summary: Get table record by ID for specified database.
+      tags:
+      - table
+    put:
+      operationId: table-rename
+      parameters:
+      - in: path
+        name: id
+        required: true
+        type: string
+        x-go-name: ID
+      - in: path
+        name: database_id
+        required: true
+        type: string
+        x-go-name: DatabaseID
+      - in: body
+        name: Body
+        schema:
+          properties:
+            name:
+              type: string
+              x-go-name: Name
+          type: object
+      responses:
+        "200":
+          $ref: '#/responses/tableResponse'
+        "400":
+          $ref: '#/responses/databaseResponseError'
+        "422":
+          $ref: '#/responses/databaseResponseError'
+      summary: Rename table record by ID for specified database.
+      tags:
+      - table
+  /database/{database_id}/table/{table_id}/row:
+    post:
+      operationId: row-create
+      parameters:
+      - in: path
+        name: database_id
+        required: true
+        type: string
+        x-go-name: DatabaseID
+      - in: path
+        name: table_id
+        required: true
+        type: string
+        x-go-name: TableID
+      - in: body
+        name: Body
+        schema:
+          properties:
+            cells:
+              items:
+                properties:
+                  column:
+                    $ref: '#/definitions/ColumnData'
+                  value:
+                    type: object
+                    x-go-name: Value
+                type: object
+              type: array
+              x-go-name: Cells
+          type: object
+      responses:
+        "200":
+          $ref: '#/responses/rowResponse'
+        "400":
+          $ref: '#/responses/databaseResponseError'
+        "422":
+          $ref: '#/responses/databaseResponseError'
+      summary: Create row record for specified database and table.
+      tags:
+      - row
+  /database/{database_id}/table/{table_id}/row/{id}:
+    delete:
+      operationId: row-delete
+      parameters:
+      - in: path
+        name: id
+        required: true
+        type: string
+        x-go-name: ID
+      - in: path
+        name: database_id
+        required: true
+        type: string
+        x-go-name: DatabaseID
+      - in: path
+        name: table_id
+        required: true
+        type: string
+        x-go-name: TableID
+      - in: body
+        name: Body
+        schema:
+          items:
+            properties:
+              column:
+                $ref: '#/definitions/ColumnData'
+              value:
+                type: object
+                x-go-name: Value
+            type: object
+          type: array
+      responses:
+        "200":
+          $ref: '#/responses/databaseResponseDelete'
+        "400":
+          $ref: '#/responses/databaseResponseError'
+        "422":
+          $ref: '#/responses/databaseResponseError'
+      summary: Delete row record for specified database and table.
+      tags:
+      - row
+    put:
+      operationId: row-edit
+      parameters:
+      - in: path
+        name: id
+        required: true
+        type: string
+        x-go-name: ID
+      - in: path
+        name: database_id
+        required: true
+        type: string
+        x-go-name: DatabaseID
+      - in: path
+        name: table_id
+        required: true
+        type: string
+        x-go-name: TableID
+      - in: body
+        name: Body
+        schema:
+          items:
+            properties:
+              column:
+                $ref: '#/definitions/ColumnData'
+              value:
+                type: object
+                x-go-name: Value
+            type: object
+          type: array
+      responses:
+        "200":
+          $ref: '#/responses/rowResponse'
+        "400":
+          $ref: '#/responses/databaseResponseError'
+        "422":
+          $ref: '#/responses/databaseResponseError'
+      summary: Edit row record for specified database and table.
+      tags:
+      - row
+  /database/{database_id}/tablesProduct:
+    get:
+      operationId: table-product
+      parameters:
+      - in: path
+        name: database_id
+        required: true
+        type: string
+        x-go-name: DatabaseID
+      - in: query
+        name: t1_id
+        type: string
+        x-go-name: T1
+      - in: query
+        name: t2_id
+        type: string
+        x-go-name: T2
+      responses:
+        "200":
+          $ref: '#/responses/tableProductResponse'
+        "400":
+          $ref: '#/responses/databaseResponseError'
+        "422":
+          $ref: '#/responses/databaseResponseError'
+      summary: Get table record by ID for specified database.
+      tags:
+      - table
+  /database/{id}:
+    delete:
+      operationId: database-delete
+      parameters:
+      - in: path
+        maximum: 12
+        name: id
+        required: true
+        type: string
+        x-go-name: ID
+      responses:
+        "200":
+          $ref: '#/responses/databaseResponseDelete'
+        "400":
+          $ref: '#/responses/databaseResponseError'
+        "422":
+          $ref: '#/responses/databaseResponseError'
+      summary: Delete database record by ID.
+      tags:
+      - database
+    get:
+      operationId: database-get
+      parameters:
+      - in: path
+        maximum: 12
+        name: id
+        required: true
+        type: string
+        x-go-name: ID
+      responses:
+        "200":
+          $ref: '#/responses/databaseResponse'
+        "400":
+          $ref: '#/responses/databaseResponseError'
+        "422":
+          $ref: '#/responses/databaseResponseError'
+      summary: Get database record by ID.
+      tags:
+      - database
+    put:
+      operationId: database-rename
+      parameters:
+      - in: path
+        name: id
+        required: true
+        type: string
+        x-go-name: ID
+      - in: body
+        name: Body
+        schema:
+          properties:
+            name:
+              type: string
+              x-go-name: Name
+          type: object
+      responses:
+        "200":
+          $ref: '#/responses/databaseResponse'
+        "400":
+          $ref: '#/responses/databaseResponseError'
+        "422":
+          $ref: '#/responses/databaseResponseError'
+      summary: Rename database record by ID.
+      tags:
+      - database
+produces:
+- application/json
+responses:
+  databaseResponse:
+    description: Valid database record
+    schema:
+      $ref: '#/definitions/Database'
+  databaseResponseDelete:
+    description: ""
+    schema:
+      properties:
+        status:
+          type: string
+          x-go-name: Status
+      type: object
+  databaseResponseError:
+    description: ""
+    schema:
+      $ref: '#/definitions/ResponseError'
+  rowResponse:
+    description: Valid table record
+    schema:
+      $ref: '#/definitions/Row'
+  tableProductResponse:
+    description: ""
+    schema:
+      $ref: '#/definitions/TablesProduct'
+  tableResponse:
+    description: Valid table record
+    schema:
+      $ref: '#/definitions/Table'
+schemes:
+- http
+securityDefinitions:
+  basic:
+    type: basic
+swagger: "2.0"

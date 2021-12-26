@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+option go_package = "github.com/nikitasadok/database-system/table/delivery/grpc/table";
+
+message Filter {
+  string id1 = 1;
+  string id2 = 2;
+  string dbId = 3;
+}
+
+message TableProduct {
+  repeated Row rows = 1;
+}
+
+message Row {
+  repeated Cell cells = 1;
+}
+
+message Cell {
+   bytes value = 1;
+   ColumnData colData = 2;
+}
+
+message ColumnData {
+   string name = 1;
+   string datatype = 2;
+}
+
+service TableProductProvider {
+   rpc GetTableProduct(Filter) returns (TableProduct) {}
+}
